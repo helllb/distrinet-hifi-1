@@ -11,7 +11,9 @@ pip3 install pingparsing
 ```
 
 ## Usage
-If you already have access to a slice, simply run the nepi-ng script from your laptop:
+If you already have access to an R2Lab slice, simply run the nepi-ng script from your laptop:
 ```
-python3 transmission.py
+python3 transmission.py --slice=$USERNAME
 ```
+
+Otherwise
