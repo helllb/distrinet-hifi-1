@@ -16,4 +16,8 @@ If you already have access to an R2Lab slice, simply run the nepi-ng script from
 python3 transmission.py --slice=$USERNAME
 ```
 
-Otherwise
+Otherwise run the `pings.py` script in Mininet:
+```
+sudo mn --custom=pings.py --test=pings
+```
+which will generate Ping output files `ping_100, ping_200, ...` that you can parse and plot by copying code from the nepi-ng script (see section `Analysis` in the script).
