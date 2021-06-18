@@ -11,4 +11,7 @@ pip3 install pingparsing
 ```
 
 ## Usage
-If you already have access to a slice 
+If you already have access to a slice, simply run the nepi-ng script from your laptop:
+```
+python3 transmission.py
+```
