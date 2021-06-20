@@ -4,6 +4,7 @@ from apssh import SshNode, SshJob, Run, Push, Pull
 from argparse import ArgumentParser
 
 from datetime import datetime
+import json
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -205,19 +206,95 @@ def get_fcts(nclients):
 			h =  (i + 1) % 2
 			fcts[h].append(fct)
 		except:
+			h =  (i + 1) % 2
 			print("Warning Mininet error: client %i (host %i) has not generated a flow" % (i+1, h))
 
 	return fcts
 
-def plot(fcts):
+def plot_fcts(fcts):
+	plt.subplot(211)
+
 	nclients = len(fcts[0])+len(fcts[1])
 	plt.boxplot(fcts, labels=["Host 1", "Host 2"], showfliers=False)
 
 	plt.ylabel("FCT (s)")
 	plt.title("Flow Completion Times (N = %i)" % nclients)
 
-	plt.show()
+
+
+
+def get_rel(filename):
+	with open(filename, 'r') as f:
+		raw = f.read()
+		data = json.loads(raw)
+	rel = [d*100 for d in data['rel']]
+	return rel
+
+def clean_extremes(xs, inf=1, sup=99):
+	inf = np.percentile(xs, inf)
+	sup = np.percentile(xs, sup)
+
+	xs_ = [x for x in xs if x > inf and x < sup]
+	return xs_
+
+def get_cdf(xs, bins=100):
+	count, bins_count = np.histogram(xs, bins=bins)
+	pdf = count / sum(count)
+	cdf = np.cumsum(pdf)
+
+	return list(bins_count[1:]), list(cdf)
+
+def plot_errors(nclients):
+	plt.subplot(212)
+
+	# This is hell
+	M = 0
+	for i in range(nclients):
+		try:
+			j = i + 2
+			filename = "results/s1-eth%i--h%i-eth0" % (j, j)
+
+			rel = get_rel(filename)
+			rel = clean_extremes(rel)
+
+			bins_count, cdf = get_cdf(rel)
+
+			M = max(M, bins_count[-1])
+		except:
+			continue
+
+	for i in range(nclients):
+		try:
+			j = i + 2
+			filename = "results/s1-eth%i--h%i-eth0" % (j, j)
+
+			rel = get_rel(filename)
+			rel = clean_extremes(rel)
+
+			bins_count, cdf = get_cdf(rel)
+
+			if i % 2:
+				col = "red"
+			else:
+				col = "blue"
+				
+			plt.plot(bins_count+[M], cdf+[1], color=col)
+
+		except:
+			h =  (i + 1) % 2
+			print("Warning Mininet error: client %i (host %i) has not generated a flow" % (i+1, h))
+
+	plt.plot([], [], color="blue", label="Overlay links")
+	plt.plot([], [], color="red", label="Local links")
+	plt.legend()
+
+	plt.title("Percentage Absolute Error CDFs")
+	plt.xlabel("PAE (%)")
 
 if analyse:
 	fcts = get_fcts(nclients)
-	plot(fcts)
+	plot_fcts(fcts)
+
+	plot_errors(nclients)
+
+	plt.show()
