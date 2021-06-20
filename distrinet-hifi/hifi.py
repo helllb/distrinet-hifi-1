@@ -15,10 +15,11 @@ BUFFER = 4096
 MONITOR_IP = '10.10.20.1'
 
 class Monitor:
-	def __init__(self, net):
+	def __init__(self, net, unmonitor=['admin']):
 		self.info = []
 		hostIPs = []
 		self.links = []
+		self.unmonitor=unmonitor
 
 		for lxc in net.hosts + net.switches:
 			# hostSsh = lxc.targetSsh
@@ -45,10 +46,10 @@ class Monitor:
 			host['nodes'].append(node)
 
 			for intfName in lxc.containerInterfaces:
-				if intfName == 'admin':
+				if intfName in self.unmonitor:
 					continue
 				else:	
-					intf = {'name': intfName, 'bw': 100}
+					intf = {'name': intfName, 'bw': 100, 'delay': '0ms'}
 					node['interfaces'].append(intf)
 
 		# print(json.dumps(self.info, indent=4, sort_keys=True))
@@ -57,6 +58,8 @@ class Monitor:
 			try:
 				B1 = link.params1['bw']
 				B2 = link.params2['bw']
+				d1 = link.params1['delay']
+				d2 = link.params2['delay']
 
 				# This is hell
 				for host in self.info:
@@ -64,16 +67,20 @@ class Monitor:
 						for intf in node['interfaces']:
 							if intf['name'] == link.intf1.name:
 								intf['bw'] = B1
+								intf['delay'] = d1
 							if intf['name'] == link.intf2.name:
 								intf['bw'] = B2
+								intf['delay'] = d2
 
 				B1 = B1 * 1e6
 				B2 = B2 * 1e6
 				B = B1 # TODO
+				d = int(d1[:-2])
 			except:
 				B = 100e6
+				d = 0
 
-			self.links.append((link.intf1.name, link.intf2.name, B, 0))
+			self.links.append((link.intf1.name, link.intf2.name, B, d))
 
 
 	def start(self):
@@ -204,6 +211,9 @@ class Monitor:
 		# 	info("\tMean Percentage Absolute Error is %.2f%%\n" % np.mean(paes))
 		# 	info("\tPercentage Absolute Error Deciles are %s\n" % paeqs)
 		for (intf1, intf2, B, d) in self.links:
+			if intf1 in self.unmonitor or intf2 in self.unmonitor:
+				continue
+
 			db1 = self.data[intf1]
 			db2 = self.data[intf2]
 
