@@ -92,7 +92,8 @@ class Agent:
 			for intf in node['interfaces']:
 				name = intf['name']
 				bw = intf['bw']
-				newIntf = Intf(name, bw)
+				d = intf['delay']
+				newIntf = Intf(name, bw, d)
 				newNode.addIntf(newIntf)
 		
 
@@ -203,10 +204,11 @@ class Node:
 
 
 class Intf:
-	def __init__(self, name, bw=100):
+	def __init__(self, name, bw=100, d='0ms'):
 		self.name = name
 		self.ifindex = None
 		self.bw = bw
+		self.delay = d
 
 	def setNode(self, node):
 		self.node = node
@@ -224,7 +226,7 @@ class Intf:
 
 		pid = self.node.getPID()
 		ifindex = self.getIfindex()
-		cmd = ["sh", "/root/experiment/compile.sh", str(pid), self.name, "%iMbit" % self.bw]
+		cmd = ["sh", "/root/experiment/compile.sh", str(pid), self.name, "%iMbit" % self.bw, self.delay]
 		ret = run(cmd)
 		print(cmd)
 		print(ret)
