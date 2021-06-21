@@ -1,4 +1,16 @@
 from mininet.log import info
+from mininet.topo import Topo
+from mininet.link import TCLink
+
+class PingsTopo(Topo):
+	def build(self, bw=10, delay="1ms"):
+		h1 = self.addHost("h1")
+		h2 = self.addHost("h2")
+		s1 = self.addSwitch("s1")
+		s2 = self.addSwitch("s2")
+		self.addLink(h1, s1)
+		self.addLink(h2, s2)
+		self.addLink(s1, s2, bw=bw)
 
 def pings(net):
 	h1 = net.get('h1')
@@ -12,3 +24,4 @@ def pings(net):
 
 
 tests = {'pings': pings}
+topos = {'pings': PingsTopo}
