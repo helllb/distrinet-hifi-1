@@ -233,7 +233,7 @@ class Monitor:
 			err_abs = [abs(col.rtds[i]-col.rtds_[i])              for i in range(len(col.rtds))]
 			queue = col.blens
 
-			data = {"abs": err_abs, "rel": err_rel, "queue": queue}
+			data = {"rtds": col.rtds, "rtds_": col.rtds_}
 			raw = json.dumps(data)
 
 			filename = "%s--%s" % (intf1, intf2)
@@ -355,7 +355,7 @@ class Collector:
 
 			tau = tau12 + tau21 # µs
 
-			est = len*1e3/B + blen*1e3/B + (plen*1e3/B - tau*1e-3) + d
+			est = len*1e3/B + blen*1e3/B + (plen*1e3/B - tau*1e-3) + 2 * d
 
 			self.blens.append(blen)
 			self.plens.append(plen)
